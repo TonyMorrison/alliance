@@ -146,8 +146,8 @@ pipeline {
         */
         stage ('SonarCloud') {
             when {
-                // Currently Sonar is not run for pull requests
-                expression { env.CHANGE_ID == null }
+                // Sonar Cloud only supports a single branch in the free/OSS tier
+                expression { env.BRANCH_NAME == 'master'}
             }
             environment {
                 SONARQUBE_GITHUB_TOKEN = credentials('SonarQubeGithubToken')
@@ -155,7 +155,7 @@ pipeline {
             }
             steps {
                 withMaven(maven: 'maven-latest', jdk: 'jdk11', globalMavenSettingsConfig: 'default-global-settings', mavenSettingsConfig: 'codice-maven-settings', mavenOpts: '${LARGE_MVN_OPTS} ${LINUX_MVN_RANDOM}') {
-                            sh 'mvn -q -B -Dcheckstyle.skip=true org.jacoco:jacoco-maven-plugin:prepare-agent sonar:sonar -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=$SONAR_TOKEN  -Dsonar.organization=codice -Dsonar.projectKey=org.codice:alliance -Dsonar.exclusions=${COVERAGE_EXCLUSIONS} -pl !distribution/alliance,!$DOCS,!$ITESTS $DISABLE_DOWNLOAD_PROGRESS_OPTS'
+                            sh 'mvn -P !itests -q -B -Dcheckstyle.skip=true org.jacoco:jacoco-maven-plugin:prepare-agent sonar:sonar -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=$SONAR_TOKEN  -Dsonar.organization=codice -Dsonar.projectKey=org.codice:alliance -Dsonar.exclusions=${COVERAGE_EXCLUSIONS} -pl !distribution/alliance,!$DOCS $DISABLE_DOWNLOAD_PROGRESS_OPTS'
                 }
             }
         }
